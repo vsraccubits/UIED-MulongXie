@@ -20,9 +20,13 @@ def resize_height_by_longest_edge(img_path, resize_length=800):
 
 if __name__ == '__main__':
     # initialization
-    input_img_root = "E:/Mulong/Datasets/rico/combined"
-    output_root = "E:/Mulong/Result/rico/rico_uied/rico_new_uied_v3"
-    data = json.load(open('E:/Mulong/Datasets/rico/instances_test.json', 'r'))
+    input_img_root = 'data/input'
+    output_root = 'data/output'
+    data = json.load(open('data/input/instances_test.json', 'r'))
+    """
+    Json format: {"images": [{"file_name": "0.jpg"}, {"file_name": "1.jpg"}]}
+    file_name should be integer and start from 0 otherwise mention the start_index
+    """
 
     input_imgs = [pjoin(input_img_root, img['file_name'].split('/')[-1]) for img in data['images']]
     input_imgs = sorted(input_imgs, key=lambda x: int(x.split('/')[-1][:-4]))  # sorted by index
@@ -30,9 +34,9 @@ if __name__ == '__main__':
     key_params = {'min-grad': 10, 'ffl-block': 5, 'min-ele-area': 50, 'merge-contained-ele': True,
                   'max-word-inline-gap': 10, 'max-line-ingraph-gap': 4, 'remove-top-bar': True}
 
-    is_ip = False
+    is_ip = True
     is_clf = False
-    is_ocr = False
+    is_ocr = True
     is_merge = True
 
     # Load deep learning models in advance
@@ -49,7 +53,7 @@ if __name__ == '__main__':
 
     # set the range of target inputs' indices
     num = 0
-    start_index = 30800  # 61728
+    start_index = 0  # 61728
     end_index = 100000
     for input_img in input_imgs:
         resized_height = resize_height_by_longest_edge(input_img)
@@ -66,9 +70,9 @@ if __name__ == '__main__':
             ip.compo_detection(input_img, output_root, key_params,  classifier=compo_classifier, resize_by_height=resized_height, show=False)
 
         if is_merge:
-            import merge
+            import detect_merge.merge as merge
             compo_path = pjoin(output_root, 'ip', str(index) + '.json')
             ocr_path = pjoin(output_root, 'ocr', str(index) + '.json')
-            merge.merge(input_img, compo_path, ocr_path, output_root, is_remove_top=key_params['remove-top-bar'], show=True)
+            merge.merge(input_img, compo_path, ocr_path, pjoin(output_root, 'merge'), is_remove_bar=key_params['remove-top-bar'], show=False)
 
         num += 1
